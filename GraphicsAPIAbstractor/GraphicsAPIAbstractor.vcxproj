@@ -181,10 +181,16 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">GAAPrecompiledHeader.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="EntryPoint.cpp" />
+    <ClCompile Include="OpenGL\IndexBuffer.cpp" />
+    <ClCompile Include="OpenGL\OpenGLRenderer.cpp" />
+    <ClCompile Include="OpenGL\VertexBuffer.cpp" />
     <ClCompile Include="Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\GAAPrecompiledHeader.h" />
+    <ClInclude Include="OpenGL\IndexBuffer.h" />
+    <ClInclude Include="OpenGL\OpenGLRenderer.h" />
+    <ClInclude Include="OpenGL\VertexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenGL\Shaders\Basic.shader" />

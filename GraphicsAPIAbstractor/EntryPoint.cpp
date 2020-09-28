@@ -2,6 +2,11 @@
 #include "Renderer.h"
 #include <GL/glew.h>
 #include "GLFW/glfw3.h"
+#include "OpenGL/OpenGLRenderer.h"
+#include "OpenGL/IndexBuffer.h"
+#include "OpenGL/VertexBuffer.h"
+
+///Excuse the mess! :)
 
 //A shader is a program that runs on the GPU. We do this because we want to be able to tell the GPU what to do. It is extremely powerful.
 //All forms of information such as vertex position, color and textures originally given by us on the CPU are packed into a shader and sent to the GPU to be rendered. 
@@ -25,37 +30,10 @@
 //The compatability OpenGL profile makes Vertex Array Object 0 a default object. The core OpenGL profile makes VAO object 0 not an object at all. 
 //You can either have 1 VAO for your entire program lifespan and bind a Vertex Buffer and give it a specification each time you use it to draw something, or create a unique VAO for each unique piece of Geometry. Which is better? It depends.
 
-
 //Index/Element Buffers allow us to reuse existing vertices. Thus, you can use already drawn vertices and copy + put them at another position. 
 //This allows us to avoid having the same memory type in your GPU multiple times. 
 //Each vertice may have so many properties in 3D models that re-rendering each one without index buffering can become really crazy and expensive. 
 //You should be using index buffers for pretty much everything you do. :)
-
-
-#define ASSERT(x) if ((x == false)) __debugbreak();  //__ means Compiler Intrisic. This will only work in MSVS.
-#define GLCall(x) GLClearError();\
-    x;\
-    ASSERT(GLLogCall(#x, __FILE__, __LINE__))
-
-static void GLClearError()  //Clears all errors.
-{
-    while (glGetError() != GL_NO_ERROR);
-}
-
-static bool GLLogCall(const char* function, const char* file, int line)
-{
-    while (GLenum error = glGetError()) //While we have errors here being retrieved...
-    {
-        std::cout << "[OpenGL Error!] (0x" << std::hex << error << std::dec << ") :" << "\nFunction: " << function << "\nFile: " << file << "\nLine: " << line << "\n";
-        return false;
-    }
-    return true;
-}
-
-static void GLConvertError(unsigned int errorCode)
-{
-
-}
 
 struct ShaderProgramSource
 {
@@ -176,91 +154,83 @@ int main()
     std::cout << glGetString(GL_VENDOR) << "\n";
     std::cout << glGetString(GL_RENDERER) << "\n";
     //Vertexes are points on a piece of geometry. A triangle has 3 points, for example, and lines are drawn between them and filled in to create said triangle.
-
-    float positions[] =
     {
-        -0.5f, -0.5,  //0
-        0.5f, -0.5f,  //1
-        0.5f, 0.5f,   //2
-        -0.5f, 0.5f,  //3
-    };
+        float positions[] =
+        {
+            -0.5f, -0.5,  //0
+            0.5f, -0.5f,  //1
+            0.5f, 0.5f,   //2
+            -0.5f, 0.5f,  //3
+        };
 
-    unsigned int indices[] =     //Index Buffer
-    {
-        0, 1, 2,
-        2, 3, 0
-    };
+        unsigned int indices[] =     //Index Buffer
+        {
+            0, 1, 2,
+            2, 3, 0
+        };
 
-    unsigned int vertexArrayObject;
-    glGenVertexArrays(1, &vertexArrayObject);
-    glBindVertexArray(vertexArrayObject);
-
-    unsigned int buffer;
-    glGenBuffers(1, &buffer);          //We would like to generate 1 empty buffer and store it in the memory address of "buffer".
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);  //OpenGL will always select whatever is bound to the buffer and do your commands with it.
-    glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
-    
-    glEnableVertexAttribArray(0);
-    //This is the line of code that binds the buffer to the vertex array. 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-  
-    unsigned int indexBufferObject;
-    glGenBuffers(1, &indexBufferObject);          //We would like to generate 1 empty buffer and store it in the memory address of "buffer".
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);  //OpenGL will always select whatever is bound to the buffer and do your commands with it.
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-
-    ShaderProgramSource source = ParseShader("OpenGL/Shaders/Basic.shader");
-
-    unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
-    glUseProgram(shader);  //We must have a shader bound before setting uniform data so that it knows which shader to send on to.
-    //The difference between each uniform is the type of data we're sending and how many components we have. In this, case its a Vec4 aka 4 floats. 
-    //When a shader is created, every uniform is assigned an ID which we can then reference. 
-    //We reference it by name! :)
-    int location = glGetUniformLocation(shader, "u_Color");
-    ASSERT(location != -1);   //Ensure that our uniform can be found. 
-    //Note that if we don't use the uniform, OpenGL strips it away when the shader is compiled. Thus, this may return -1 because the shader may have gotten removed due to such.
-    
-    //We have effectively moved the code from the shader into here, our C++ code. 
-    glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f);
-
-    glBindVertexArray(0);
-    glUseProgram(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    float r = 0.0f;
-    float increment = 0.05f;
-    /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
-    {
-        /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glUseProgram(shader);
-        glUniform4f(location, r, 0.3f, 0.8f, 1.0f);
+        unsigned int vertexArrayObject;
+        glGenVertexArrays(1, &vertexArrayObject);
         glBindVertexArray(vertexArrayObject);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
 
-        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr)); //We can put nullptr because the data is already bound to the buffer.
-        
-        
-        
-        if (r > 1.0f)
-        {
-            increment = -0.05f;
-        }
-        else if (r < 0.0f)
-        {
-            increment = 0.05f;
-        }
-        r += increment;
-        /* Swap front and back buffers */
-        glfwSwapBuffers(window);
+        VertexBuffer vertexBuffer(positions, 4 * 2 * sizeof(float));
 
-        /* Poll for and process events */
-        glfwPollEvents();
+        glEnableVertexAttribArray(0);
+        //This is the line of code that binds the buffer to the vertex array. 
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+        IndexBuffer indexBuffer(indices, 6);
+
+        ShaderProgramSource source = ParseShader("OpenGL/Shaders/Basic.shader");
+
+        unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
+        glUseProgram(shader);  //We must have a shader bound before setting uniform data so that it knows which shader to send on to.
+        //The difference between each uniform is the type of data we're sending and how many components we have. In this, case its a Vec4 aka 4 floats. 
+        //When a shader is created, every uniform is assigned an ID which we can then reference. 
+        //We reference it by name! :)
+        int location = glGetUniformLocation(shader, "u_Color");
+        ASSERT(location != -1);   //Ensure that our uniform can be found. 
+        //Note that if we don't use the uniform, OpenGL strips it away when the shader is compiled. Thus, this may return -1 because the shader may have gotten removed due to such.
+
+        //We have effectively moved the code from the shader into here, our C++ code. 
+        glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f);
+
+        glBindVertexArray(0);
+        glUseProgram(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+        float r = 0.0f;
+        float increment = 0.05f;
+        /* Loop until the user closes the window */
+        while (!glfwWindowShouldClose(window))
+        {
+            /* Render here */
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            glUseProgram(shader);
+            glUniform4f(location, r, 0.3f, 0.8f, 1.0f);
+            glBindVertexArray(vertexArrayObject);
+            indexBuffer.Bind();
+
+            GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr)); //We can put nullptr because the data is already bound to the buffer.
+
+            if (r > 1.0f)
+            {
+                increment = -0.05f;
+            }
+            else if (r < 0.0f)
+            {
+                increment = 0.05f;
+            }
+            r += increment;
+            /* Swap front and back buffers */
+            glfwSwapBuffers(window);
+
+            /* Poll for and process events */
+            glfwPollEvents();
+        }
+        glDeleteProgram(shader);
     }
-    glDeleteProgram(shader);
     glfwTerminate();
     return 0;	
     //////////////////////
