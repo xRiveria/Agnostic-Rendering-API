@@ -5,6 +5,7 @@
 #include "OpenGL/OpenGLRenderer.h"
 #include "OpenGL/IndexBuffer.h"
 #include "OpenGL/VertexBuffer.h"
+#include "OpenGL/VertexArray.h"
 
 ///Excuse the mess! :)
 
@@ -21,6 +22,7 @@
 //Uniforms also allow us to pass data from the CPU (C++ in this case) into the Shader so we can use it like a variable.
 //Uniforms are set per draw before the actual drawing, while attributes are set via vertex.
 
+//To tie together a buffer with a layout.  
 //Vertex Arrays are OpenGL original, and are a way to bind Vertex Buffers with a certain specification - a layout.
 //Instead of manually explictly specifying each Vertex Buffer's layout every time we rebind, we can make things more easier. Refer to this:
 //Thus, the way we do things now change from Binding our Shader -> Binding our Vertex Buffer -> Setup the Vertex Layout -> Bind our Index Buffer -> Draw Call.
@@ -173,11 +175,12 @@ int main()
         glGenVertexArrays(1, &vertexArrayObject);
         glBindVertexArray(vertexArrayObject);
 
+        VertexArray vertexArray;
         VertexBuffer vertexBuffer(positions, 4 * 2 * sizeof(float));
+        VertexBufferLayout layout;
+        layout.Push<float>(2);
+        vertexArray.AddBuffer(vertexBuffer, layout);
 
-        glEnableVertexAttribArray(0);
-        //This is the line of code that binds the buffer to the vertex array. 
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
         IndexBuffer indexBuffer(indices, 6);
 
         ShaderProgramSource source = ParseShader("OpenGL/Shaders/Basic.shader");
@@ -209,7 +212,7 @@ int main()
 
             glUseProgram(shader);
             glUniform4f(location, r, 0.3f, 0.8f, 1.0f);
-            glBindVertexArray(vertexArrayObject);
+            vertexArray.Bind();
             indexBuffer.Bind();
 
             GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr)); //We can put nullptr because the data is already bound to the buffer.
