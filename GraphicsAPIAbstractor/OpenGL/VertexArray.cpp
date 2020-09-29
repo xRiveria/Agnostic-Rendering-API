@@ -1,5 +1,7 @@
 #include "GAAPrecompiledHeader.h"
+#include "GL/glew.h"
 #include "VertexArray.h"
+#include "VertexBufferLayout.h"
 
 VertexArray::VertexArray()
 {

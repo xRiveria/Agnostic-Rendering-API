@@ -1,5 +1,6 @@
 #include "GAAPrecompiledHeader.h"
 #include "Renderer.h"
+#include "OpenGL/OpenGLRenderer.h"
 #include <GL/glew.h>
 #include "GLFW/glfw3.h"
 #include "OpenGL/OpenGLRenderer.h"
@@ -7,6 +8,7 @@
 #include "OpenGL/VertexBuffer.h"
 #include "OpenGL/VertexArray.h"
 #include "OpenGL/Shader.h"
+#include "OpenGL/VertexBufferLayout.h"
 
 ///Excuse the mess! :)
 
@@ -37,6 +39,34 @@
 //This allows us to avoid having the same memory type in your GPU multiple times. 
 //Each vertice may have so many properties in 3D models that re-rendering each one without index buffering can become really crazy and expensive. 
 //You should be using index buffers for pretty much everything you do. :)
+
+//Materials are essentially a Shader + a set of data (uniforms). A color would be a per object uniform that is stored in a material with its shader. 
+//Thus, what a renderer would do is bind the shader in the material and setup all the uniforms within to draw it. 
+
+struct FluctuatingColors //Temporary
+{
+    float r = 0.0f;
+    float increment = 0.05f;
+
+    void SetColor(Shader& shader)
+    {
+        shader.Bind();
+        shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
+    }
+
+    void TickColor()
+    {
+        if (r > 1.0f)
+        {
+            increment = -0.05f;
+        }
+        else if (r < 0.0f)
+        {
+            increment = 0.05f;
+        }
+        r += increment;
+    }
+};
 
 int main()
 {
@@ -104,31 +134,20 @@ int main()
         vertexBuffer.Unbind();
         indexBuffer.Unbind();
         shader.Unbind();
+        
+        OpenGLRenderer renderer;
+        FluctuatingColors fluctColor;
 
-        float r = 0.0f;
-        float increment = 0.05f;
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
             /* Render here */
-            glClear(GL_COLOR_BUFFER_BIT);
+            renderer.Clear();
 
-            shader.Bind();
-            shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
-            vertexArray.Bind();
-            indexBuffer.Bind();
+            fluctColor.SetColor(shader);
+            renderer.Draw(vertexArray, indexBuffer, shader);
+            fluctColor.TickColor();
 
-            GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr)); //We can put nullptr because the data is already bound to the buffer.
-
-            if (r > 1.0f)
-            {
-                increment = -0.05f;
-            }
-            else if (r < 0.0f)
-            {
-                increment = 0.05f;
-            }
-            r += increment;
             /* Swap front and back buffers */
             glfwSwapBuffers(window);
 
@@ -140,3 +159,4 @@ int main()
     return 0;	
     //////////////////////
 }
+
