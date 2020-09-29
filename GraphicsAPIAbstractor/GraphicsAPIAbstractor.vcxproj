@@ -98,7 +98,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>GAAPrecompiledHeader.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)Core\;$(SolutionDir)Dependencies\GLFW\include\;$(SolutionDir)Dependencies\GLEW\include\;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Vendor\;$(ProjectDir)Core\;$(SolutionDir)Dependencies\GLFW\include\;$(SolutionDir)Dependencies\GLEW\include\;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -116,7 +116,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>GAAPrecompiledHeader.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)Core\;$(SolutionDir)Dependencies\GLFW\include\;$(SolutionDir)Dependencies\GLEW\include\;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Vendor\;$(ProjectDir)Core\;$(SolutionDir)Dependencies\GLFW\include\;$(SolutionDir)Dependencies\GLEW\include\;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,7 +136,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>GAAPrecompiledHeader.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)Core\;$(SolutionDir)Dependencies\GLFW\include\;$(SolutionDir)Dependencies\GLEW\include\;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Vendor\;$(ProjectDir)Core\;$(SolutionDir)Dependencies\GLFW\include\;$(SolutionDir)Dependencies\GLEW\include\;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -158,7 +158,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>GAAPrecompiledHeader.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)Core\;$(SolutionDir)Dependencies\GLFW\include\;$(SolutionDir)Dependencies\GLEW\include\;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Vendor\;$(ProjectDir)Core\;$(SolutionDir)Dependencies\GLFW\include\;$(SolutionDir)Dependencies\GLEW\include\;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -184,21 +184,28 @@
     <ClCompile Include="OpenGL\IndexBuffer.cpp" />
     <ClCompile Include="OpenGL\OpenGLRenderer.cpp" />
     <ClCompile Include="OpenGL\Shader.cpp" />
+    <ClCompile Include="OpenGL\Texture.cpp" />
     <ClCompile Include="OpenGL\VertexArray.cpp" />
     <ClCompile Include="OpenGL\VertexBuffer.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\GAAPrecompiledHeader.h" />
     <ClInclude Include="OpenGL\IndexBuffer.h" />
     <ClInclude Include="OpenGL\OpenGLRenderer.h" />
     <ClInclude Include="OpenGL\Shader.h" />
+    <ClInclude Include="OpenGL\Texture.h" />
     <ClInclude Include="OpenGL\VertexArray.h" />
     <ClInclude Include="OpenGL\VertexBuffer.h" />
     <ClInclude Include="OpenGL\VertexBufferLayout.h" />
+    <ClInclude Include="Vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenGL\Shaders\Basic.shader" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\Textures\PrismEngineLogo.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

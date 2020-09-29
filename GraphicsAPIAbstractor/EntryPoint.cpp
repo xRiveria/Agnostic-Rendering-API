@@ -9,6 +9,7 @@
 #include "OpenGL/VertexArray.h"
 #include "OpenGL/Shader.h"
 #include "OpenGL/VertexBufferLayout.h"
+#include "OpenGL/Texture.h"
 
 ///Excuse the mess! :)
 
@@ -42,8 +43,14 @@
 
 //Materials are essentially a Shader + a set of data (uniforms). A color would be a per object uniform that is stored in a material with its shader. 
 //Thus, what a renderer would do is bind the shader in the material and setup all the uniforms within to draw it. 
+//Textures can be used for a lot of things and is a more than just a texture on a 3D model. Think of it as an image that can be uploaded to your GPU to be used for drawing.
+//This can be something as simple as drawing a rectangle that renders the image texture, or something more complicated such as using precalculated mathematical values baked into our texture and then sampled with the shader to create cool lighting effects.
+//There is no transparency in your image after simply rendering it. You must enable blending for your image to work properly.
 
-struct FluctuatingColors //Temporary
+//We give it a file path to load the image, and gives us a pointer to a buffer of RGB pixels. We take this pixel array and upload to the GPU through OpenGL as a texture. We then bind it.
+//Once done, we modify our shader to read the texture and bind it to the shader itself. The fragment shader reads/samples the texture and decides which pixel is what color and outputs the image. 
+
+struct FluctuatingColors
 {
     float r = 0.0f;
     float increment = 0.05f;
@@ -67,6 +74,7 @@ struct FluctuatingColors //Temporary
         r += increment;
     }
 };
+
 
 int main()
 {
@@ -106,10 +114,10 @@ int main()
     {
         float positions[] =
         {
-            -0.5f, -0.5,  //0
-            0.5f, -0.5f,  //1
-            0.5f, 0.5f,   //2
-            -0.5f, 0.5f,  //3
+            -0.5f, -0.5, 0.0f, 0.0f,  //0
+            0.5f, -0.5f, 1.0f, 0.0f, //1
+            0.5f, 0.5f, 1.0f, 1.0f,  //2
+            -0.5f, 0.5f, 0.0f, 1.0f //3
         };
 
         unsigned int indices[] =     //Index Buffer
@@ -117,11 +125,13 @@ int main()
             0, 1, 2,
             2, 3, 0
         };
-
-
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //We're saying that for the source, take the source's Alpha, and when we try to render something on top of that, take 1 - the source Alpha = the destination alpha. 
+ 
         VertexArray vertexArray;
-        VertexBuffer vertexBuffer(positions, 4 * 2 * sizeof(float));
+        VertexBuffer vertexBuffer(positions, 4 * 4 * sizeof(float));
         VertexBufferLayout layout;
+        layout.Push<float>(2);
         layout.Push<float>(2);
         vertexArray.AddBuffer(vertexBuffer, layout);
 
@@ -130,6 +140,12 @@ int main()
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
+        Texture texture("Resources/Textures/PrismEngineLogo.png");
+        texture.Bind();
+        shader.SetUniform1i("u_Texture", 0); //0 because we bound our texture to slot 0 in Texture.cpp.
+                                             //Texture Coordinates tell our geometry which part of the texture to sample from. Our Fragment/Pixel shader goes through and rasterizes the rectangle,  
+                                             //The fragment shader is responsible for the color of each pixel. We need to somehow tell the fragment shader to sample from the texture pixels to decide which color the pixel on the geometry will be.
+                                             //We are to specify for each vertex we have on our rectangle, what area of the texture it should be. The frag shader will turn interpolate between that so that if we're rendering a pixel halfway between 2indices, it will choose a coordinate that is halfway through as well.  
         vertexArray.Unbind();
         vertexBuffer.Unbind();
         indexBuffer.Unbind();
@@ -159,4 +175,5 @@ int main()
     return 0;	
     //////////////////////
 }
+
 

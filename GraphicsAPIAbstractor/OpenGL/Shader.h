@@ -17,13 +17,14 @@ public:
 	void Unbind() const;
 
 	//Set Uniforms
+	void SetUniform1i(const std::string& name, int value); //To take in a texture slot. The int sent is the texture slot ID the texture is bound om/
 	void SetUniform1f(const std::string& name, float value);
 	void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
 
 private:
 	unsigned int m_RendererID;
 	std::string m_FilePath;
-	std::unordered_map<std::string, int> m_UniformLocationCache;
+	std::unordered_map<std::string, int> m_UniformLocationCache; //Remember that Uniform Locations in OpenGL is always a 32bit Integer, not unsigned.
 private:
 	ShaderProgramSource ParseShader(const std::string& filePath);
 	unsigned int CompileShader(unsigned int type, const std::string& source);
