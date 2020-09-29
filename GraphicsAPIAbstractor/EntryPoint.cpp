@@ -13,23 +13,6 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-//Math in graphics programming mainly involves Matrices and Vectors.
-//A Matrix is basically an array of numbers which we can manipulate. Its useful for positions.
-//There are 2 types of Vectors in programming - Directional Vectors and Positional Vectors. 
-//A Vector in graphics programming can just be positions in 2D, 3D or 4D space.
-//The most common usage for these is Transformations. 
-//A transformation is used for example to position a ball in a 3D ball, or a camera positioning around the ball.
-//There are no "cameras". What we are doing really is moving the camera and the ball around.
-//We change the position of the camera and ball which creates the illusion of a camera orbiting around.
-//We might also want to position vertices in a way that is just not a translation but also scale or rotation. All these things require Maths to accomplish.
-
-//glm is a OpenGL specific Maths library and everything is laid out correctly for use.
-//A Projection Matrix is a way for us to tell Windows how we want to map all our vertices to it.
-//We have Vertex Buffers filled with vertex positions, but we need a way to transform them to a 2D plain.
-//We need to tell all our vertex positions that the window we're drawing onto is a square. So do some Maths to make it work. 
-//An orthographic matrix is a way for us to map our coordinates on a 2D plain whereby objects further away don't get smaller.
-//Perspective projections are what we are used to in real life whereby objects furthur away are smaller. This is not needed for 2D rendering. 
-
 struct FluctuatingColors
 {
     float r = 0.0f;
@@ -70,7 +53,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(960, 540, "Hello World", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -85,22 +68,37 @@ int main()
     {
         std::cout << "Error!" << std::endl;
     }
-    else
-    {
-        std::cout << glGetString(GL_VERSION) << "\n";
-        std::cout << glGetString(GL_VENDOR) << "\n";
-        std::cout << glGetString(GL_RENDERER) << "\n";
-    }
 
     //Vertexes are points on a piece of geometry. A triangle has 3 points, for example, and lines are drawn between them and filled in to create said triangle.
     {
         float positions[] =
         {
-            -0.5f, -0.5, 0.0f, 0.0f,  //0
-            0.5f, -0.5f, 1.0f, 0.0f, //1
-            0.5f, 0.5f, 1.0f, 1.0f,  //2
-            -0.5f, 0.5f, 0.0f, 1.0f //3
+            100.0f, 100.0f, 0.0f, 0.0f,  //0
+            200.0f, 100.0f, 1.0f, 0.0f, //1
+            200.0f, 200.0f, 1.0f, 1.0f,  //2
+            100.0f, 200.0f, 0.0f, 1.0f //3
         };
+
+        float positionsAgain[] =
+        {
+            500.0f, 100.0f, 0.0f, 0.0f,  //0
+            400.0f, 100.0f, 1.0f, 0.0f, //1
+            400.0f, 200.0f, 1.0f, 1.0f,  //2
+            500.0f, 200.0f, 0.0f, 1.0f //3
+        };
+
+        //Below we have our projection matrix. Anything bigger than what we specified for the bounds will not be rendered! 
+        //Thus, ensure the positions above are within the bounds specified.
+        //These positions below when multiplied with the above positions will be turned into that 1 to 1 normalized coordinate space.
+        //At the end of the day, these vertex positions get multipled with our matrix and that is what converts them back to being -0.5 and 0.5 etc.
+        
+        glm::mat4 projectionMatrix = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -3.0f, 1.0f);
+
+        glm::vec4 vp(100.0f, 100.0f, 0.0f, 1.0f);
+        glm::vec4 result = projectionMatrix * vp;
+
+        //We can see that we have successfully converted our vertex positions into that -1 to 1 space.
+        //That is what projection does in both 2D and 3D, orthographic or perspective. All you're doing is telling your computer how to convert from whatever space you're dealing with (what you give it) to that -1 to 1 space. 
 
         unsigned int indices[] =     //Index Buffer
         {
@@ -111,19 +109,21 @@ int main()
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //We're saying that for the source, take the source's Alpha, and when we try to render something on top of that, take 1 - the source Alpha = the destination alpha. 
  
         VertexArray vertexArray;
+
         VertexBuffer vertexBuffer(positions, 4 * 4 * sizeof(float));
+
         VertexBufferLayout layout;
         layout.Push<float>(2);
         layout.Push<float>(2);
+
         vertexArray.AddBuffer(vertexBuffer, layout);
 
         IndexBuffer indexBuffer(indices, 6);
-        glm::mat4 projectionMatrix = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -3.0f, 1.0f);
-
         Shader shader("OpenGL/Shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
         shader.SetUniformMat4f("u_MVP", projectionMatrix);
+
         Texture texture("Resources/Textures/PrismEngineLogo.png");
         texture.Bind();
         shader.SetUniform1i("u_Texture", 0); //0 because we bound our texture to slot 0 in Texture.cpp.
@@ -134,8 +134,10 @@ int main()
         vertexBuffer.Unbind();
         indexBuffer.Unbind();
         shader.Unbind();
-        
+             
         OpenGLRenderer renderer;
+        renderer.PrintSystemInformation();
+
         FluctuatingColors fluctColor;
 
         /* Loop until the user closes the window */
@@ -146,6 +148,7 @@ int main()
 
             fluctColor.SetColor(shader);
             renderer.Draw(vertexArray, indexBuffer, shader);
+
             fluctColor.TickColor();
 
             /* Swap front and back buffers */

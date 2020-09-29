@@ -17,6 +17,7 @@ class OpenGLRenderer
 public:
     void Clear() const;
     void Draw(const VertexArray& vertexArray, const IndexBuffer& indexBuffer, const Shader& shader);
+    void PrintSystemInformation() const;
 };
 
 

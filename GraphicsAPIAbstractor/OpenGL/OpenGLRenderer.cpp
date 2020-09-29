@@ -30,3 +30,11 @@ void OpenGLRenderer::Draw(const VertexArray& vertexArray, const IndexBuffer& ind
 
     GLCall(glDrawElements(GL_TRIANGLES, indexBuffer.GetCount(), GL_UNSIGNED_INT, nullptr)); //We can put nullptr because the data is already bound to the buffer.
 }
+
+void OpenGLRenderer::PrintSystemInformation() const
+{
+    std::cout << glGetString(GL_VERSION) << "\n" << glGetString(GL_VENDOR) << "\n" << glGetString(GL_RENDERER) << "\n";
+}
+
+
+
