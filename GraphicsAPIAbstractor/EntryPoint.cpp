@@ -10,45 +10,25 @@
 #include "OpenGL/Shader.h"
 #include "OpenGL/VertexBufferLayout.h"
 #include "OpenGL/Texture.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
-///Excuse the mess! :)
+//Math in graphics programming mainly involves Matrices and Vectors.
+//A Matrix is basically an array of numbers which we can manipulate. Its useful for positions.
+//There are 2 types of Vectors in programming - Directional Vectors and Positional Vectors. 
+//A Vector in graphics programming can just be positions in 2D, 3D or 4D space.
+//The most common usage for these is Transformations. 
+//A transformation is used for example to position a ball in a 3D ball, or a camera positioning around the ball.
+//There are no "cameras". What we are doing really is moving the camera and the ball around.
+//We change the position of the camera and ball which creates the illusion of a camera orbiting around.
+//We might also want to position vertices in a way that is just not a translation but also scale or rotation. All these things require Maths to accomplish.
 
-//A shader is a program that runs on the GPU. We do this because we want to be able to tell the GPU what to do. It is extremely powerful.
-//All forms of information such as vertex position, color and textures originally given by us on the CPU are packed into a shader and sent to the GPU to be rendered. 
-//We go from the vertex specification call to the vertex shader, to the fragment shader to the draw call and eventually a triangle is seen.
-
-//A Vertex Shader is ran once per vertex. This tells OpenGL where we want the vertex to be on the screen space. It also passes data from attributes into the next stage. In our case, we have position.
-//A fragment shader is run once for each pixel that needs to be rasterized. It decides what color each pixel is supposed to be. Thus, when a triangle has each vertex position decided, the fragment shader fills in the gap between the 3 positions for the triangle.
-//If there are certain things you can do, try doing it in the Vertex Shader instead of a fragment shader. That is because running something 3 times per vertex vs 3000 times per pixel has a huge difference.
-//Note that like everything else in OpenGL, we have to enable a shader to use it. 
-
-//Vertex Buffers allow us to submit vertex data to the GPU via attributes.
-//Uniforms also allow us to pass data from the CPU (C++ in this case) into the Shader so we can use it like a variable.
-//Uniforms are set per draw before the actual drawing, while attributes are set via vertex.
-
-//To tie together a buffer with a layout.  
-//Vertex Arrays are OpenGL original, and are a way to bind Vertex Buffers with a certain specification - a layout.
-//Instead of manually explictly specifying each Vertex Buffer's layout every time we rebind, we can make things more easier. Refer to this:
-//Thus, the way we do things now change from Binding our Shader -> Binding our Vertex Buffer -> Setup the Vertex Layout -> Bind our Index Buffer -> Draw Call.
-//To: Bind Shader -> Bind Vertex Array -> Bind Index Buffer -> Draw Call.
-//Thus, Binding the Vertex Buffer and setting up its layout now becomes just binding the vertex layout.
-//Technically speaking, Vertex Array objects are mandatory and are always being used. 
-//The compatability OpenGL profile makes Vertex Array Object 0 a default object. The core OpenGL profile makes VAO object 0 not an object at all. 
-//You can either have 1 VAO for your entire program lifespan and bind a Vertex Buffer and give it a specification each time you use it to draw something, or create a unique VAO for each unique piece of Geometry. Which is better? It depends.
-
-//Index/Element Buffers allow us to reuse existing vertices. Thus, you can use already drawn vertices and copy + put them at another position. 
-//This allows us to avoid having the same memory type in your GPU multiple times. 
-//Each vertice may have so many properties in 3D models that re-rendering each one without index buffering can become really crazy and expensive. 
-//You should be using index buffers for pretty much everything you do. :)
-
-//Materials are essentially a Shader + a set of data (uniforms). A color would be a per object uniform that is stored in a material with its shader. 
-//Thus, what a renderer would do is bind the shader in the material and setup all the uniforms within to draw it. 
-//Textures can be used for a lot of things and is a more than just a texture on a 3D model. Think of it as an image that can be uploaded to your GPU to be used for drawing.
-//This can be something as simple as drawing a rectangle that renders the image texture, or something more complicated such as using precalculated mathematical values baked into our texture and then sampled with the shader to create cool lighting effects.
-//There is no transparency in your image after simply rendering it. You must enable blending for your image to work properly.
-
-//We give it a file path to load the image, and gives us a pointer to a buffer of RGB pixels. We take this pixel array and upload to the GPU through OpenGL as a texture. We then bind it.
-//Once done, we modify our shader to read the texture and bind it to the shader itself. The fragment shader reads/samples the texture and decides which pixel is what color and outputs the image. 
+//glm is a OpenGL specific Maths library and everything is laid out correctly for use.
+//A Projection Matrix is a way for us to tell Windows how we want to map all our vertices to it.
+//We have Vertex Buffers filled with vertex positions, but we need a way to transform them to a 2D plain.
+//We need to tell all our vertex positions that the window we're drawing onto is a square. So do some Maths to make it work. 
+//An orthographic matrix is a way for us to map our coordinates on a 2D plain whereby objects further away don't get smaller.
+//Perspective projections are what we are used to in real life whereby objects furthur away are smaller. This is not needed for 2D rendering. 
 
 struct FluctuatingColors
 {
@@ -74,7 +54,6 @@ struct FluctuatingColors
         r += increment;
     }
 };
-
 
 int main()
 {
@@ -106,10 +85,13 @@ int main()
     {
         std::cout << "Error!" << std::endl;
     }
+    else
+    {
+        std::cout << glGetString(GL_VERSION) << "\n";
+        std::cout << glGetString(GL_VENDOR) << "\n";
+        std::cout << glGetString(GL_RENDERER) << "\n";
+    }
 
-    std::cout << glGetString(GL_VERSION) << "\n";
-    std::cout << glGetString(GL_VENDOR) << "\n";
-    std::cout << glGetString(GL_RENDERER) << "\n";
     //Vertexes are points on a piece of geometry. A triangle has 3 points, for example, and lines are drawn between them and filled in to create said triangle.
     {
         float positions[] =
@@ -136,10 +118,12 @@ int main()
         vertexArray.AddBuffer(vertexBuffer, layout);
 
         IndexBuffer indexBuffer(indices, 6);
+        glm::mat4 projectionMatrix = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -3.0f, 1.0f);
+
         Shader shader("OpenGL/Shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
-
+        shader.SetUniformMat4f("u_MVP", projectionMatrix);
         Texture texture("Resources/Textures/PrismEngineLogo.png");
         texture.Bind();
         shader.SetUniform1i("u_Texture", 0); //0 because we bound our texture to slot 0 in Texture.cpp.

@@ -44,6 +44,12 @@ void Shader::SetUniform4f(const std::string& name, float v0, float v1, float v2,
     glUniform4f(GetUniformLocation(name), v0, v1, v2, v3);
 }
 
+void Shader::SetUniformMat4f(const std::string& name, const glm::mat4& matrix)
+{
+    //0, 0 means element 0 inside column 0 in &matrix.
+    glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0][0]); //v means we're passing it a float array. 1 because we're passing in 1 matrix. Transpose means whether we need to adjust how the matrix's memory is laid out in memory. (rows or columns) GLM stores the matrixes in column major, so we don't need to do anything.  
+}
+
 int Shader::GetUniformLocation(const std::string& name)
 {
     if (m_UniformLocationCache.find(name) != m_UniformLocationCache.end())
