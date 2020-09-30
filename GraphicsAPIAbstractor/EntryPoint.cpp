@@ -79,23 +79,18 @@ int main()
             100.0f, 200.0f, 0.0f, 1.0f //3
         };
 
-        float positionsAgain[] =
-        {
-            500.0f, 100.0f, 0.0f, 0.0f,  //0
-            400.0f, 100.0f, 1.0f, 0.0f, //1
-            400.0f, 200.0f, 1.0f, 1.0f,  //2
-            500.0f, 200.0f, 0.0f, 1.0f //3
-        };
-
         //Below we have our projection matrix. Anything bigger than what we specified for the bounds will not be rendered! 
         //Thus, ensure the positions above are within the bounds specified.
         //These positions below when multiplied with the above positions will be turned into that 1 to 1 normalized coordinate space.
         //At the end of the day, these vertex positions get multipled with our matrix and that is what converts them back to being -0.5 and 0.5 etc.
         
-        glm::mat4 projectionMatrix = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -3.0f, 1.0f);
+        glm::mat4 projectionMatrix = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -3.0f, 1.0f); //Pixel based. Every unit is one pixel here.
+        glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));  //Moves our camera to the right, so everything else moves left on the screen.
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
 
-        glm::vec4 vp(100.0f, 100.0f, 0.0f, 1.0f);
-        glm::vec4 result = projectionMatrix * vp;
+        //MVP - Model View Projection Matrix. Remember that this is in reverse because OpenGL's memory layout in its shader and GPU is column major, and that is why glm does this for us due to OpenGL.
+        //
+        glm::mat4 mvp = projectionMatrix * viewMatrix * model; 
 
         //We can see that we have successfully converted our vertex positions into that -1 to 1 space.
         //That is what projection does in both 2D and 3D, orthographic or perspective. All you're doing is telling your computer how to convert from whatever space you're dealing with (what you give it) to that -1 to 1 space. 
@@ -107,9 +102,8 @@ int main()
         };
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //We're saying that for the source, take the source's Alpha, and when we try to render something on top of that, take 1 - the source Alpha = the destination alpha. 
- 
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         VertexArray vertexArray;
-
         VertexBuffer vertexBuffer(positions, 4 * 4 * sizeof(float));
 
         VertexBufferLayout layout;
@@ -122,7 +116,7 @@ int main()
         Shader shader("OpenGL/Shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
-        shader.SetUniformMat4f("u_MVP", projectionMatrix);
+        shader.SetUniformMat4f("u_MVP", mvp);
 
         Texture texture("Resources/Textures/PrismEngineLogo.png");
         texture.Bind();
