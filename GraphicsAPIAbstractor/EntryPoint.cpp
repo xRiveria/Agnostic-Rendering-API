@@ -12,6 +12,15 @@
 #include "OpenGL/Texture.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
+//ImGui is a GUI library that we can use with any rendering API. It is API independant and is a way for us to draw UI on the screen.
+//It lets us draw buttons, text, color pickers etc. We can add framerates, graphic card information etc in its own window.
+//Its really useful for debugging purposes and is useful if we want to make an application quickly.
+//Its good for game engines to simulate an editor. 
+
 
 struct FluctuatingColors
 {
@@ -86,11 +95,7 @@ int main()
         
         glm::mat4 projectionMatrix = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -3.0f, 1.0f); //Pixel based. Every unit is one pixel here.
         glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));  //Moves our camera to the right, so everything else moves left on the screen.
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
 
-        //MVP - Model View Projection Matrix. Remember that this is in reverse because OpenGL's memory layout in its shader and GPU is column major, and that is why glm does this for us due to OpenGL.
-        //
-        glm::mat4 mvp = projectionMatrix * viewMatrix * model; 
 
         //We can see that we have successfully converted our vertex positions into that -1 to 1 space.
         //That is what projection does in both 2D and 3D, orthographic or perspective. All you're doing is telling your computer how to convert from whatever space you're dealing with (what you give it) to that -1 to 1 space. 
@@ -116,7 +121,7 @@ int main()
         Shader shader("OpenGL/Shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
-        shader.SetUniformMat4f("u_MVP", mvp);
+
 
         Texture texture("Resources/Textures/PrismEngineLogo.png");
         texture.Bind();
@@ -130,20 +135,74 @@ int main()
         shader.Unbind();
              
         OpenGLRenderer renderer;
-        renderer.PrintSystemInformation();
 
         FluctuatingColors fluctColor;
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ImGui::StyleColorsDark();
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init((char*)glGetString(GL_NUM_SHADING_LANGUAGE_VERSIONS));
+
+        glm::vec3 translation(200, 200, 0);
+
+       /* bool show_demo_window = true;
+        bool show_another_window = false;
+        ImVec4 clear_color = ImVec4(0.45, 0.55f, 0.60f, 1.00f);*/
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
             /* Render here */
             renderer.Clear();
+            //New Frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
+            glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
+            //MVP - Model View Projection Matrix. Remember that this is in reverse because OpenGL's memory layout in its shader and GPU is column major, and that is why glm does this for us due to OpenGL.
+            glm::mat4 mvp = projectionMatrix * viewMatrix * model;
 
             fluctColor.SetColor(shader);
+            shader.SetUniformMat4f("u_MVP", mvp);
             renderer.Draw(vertexArray, indexBuffer, shader);
 
             fluctColor.TickColor();
+            
+
+            {
+                ImGui::SliderFloat3("Translation", &translation.x, 0.0f, 960.0f);
+                ImGui::Begin("Graphical Information");
+                ImGui::Text((char*)glGetString(GL_RENDERER));
+                ImGui::Text((char*)glGetString(GL_VENDOR));
+                ImGui::Text((char*)glGetString(GL_VERSION));
+                ImGui::End();
+                /*static float f = 0.0f;
+                static int counter = 0;
+
+                ImGui::Begin("Hello, world!");
+
+
+
+                ImGui::Checkbox("Demo Window", &show_demo_window);
+                ImGui::Checkbox("Another Window", &show_another_window);
+                
+
+                ImGui::ColorEdit3("clear color", (float*)&clear_color);
+                if (ImGui::Button("Button"))
+                    counter++;
+                ImGui::SameLine();
+                ImGui::Text("counter = %d", counter);
+                */
+                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            }
+
+            //Render
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 
             /* Swap front and back buffers */
             glfwSwapBuffers(window);
@@ -152,6 +211,9 @@ int main()
             glfwPollEvents();
         }
     }
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;	
     //////////////////////

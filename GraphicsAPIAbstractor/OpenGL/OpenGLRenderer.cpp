@@ -17,6 +17,13 @@ bool GLLogCall(const char* function, const char* file, int line)
     return true;
 }
 
+/*OpenGLRenderer::OpenGLRenderer()
+{
+    OpenGLRenderer::systemInformation.rendererInformation = (char*)glGetString(GL_RENDERER);
+    OpenGLRenderer::systemInformation.vendorInformation = (char*)glGetString(GL_VENDOR);
+    OpenGLRenderer::systemInformation.versionInformation = (char*)glGetString(GL_VERSION);
+}*/
+
 void OpenGLRenderer::Clear() const
 {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -31,10 +38,6 @@ void OpenGLRenderer::Draw(const VertexArray& vertexArray, const IndexBuffer& ind
     GLCall(glDrawElements(GL_TRIANGLES, indexBuffer.GetCount(), GL_UNSIGNED_INT, nullptr)); //We can put nullptr because the data is already bound to the buffer.
 }
 
-void OpenGLRenderer::PrintSystemInformation() const
-{
-    std::cout << glGetString(GL_VERSION) << "\n" << glGetString(GL_VENDOR) << "\n" << glGetString(GL_RENDERER) << "\n";
-}
 
 
 
