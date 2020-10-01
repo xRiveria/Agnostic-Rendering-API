@@ -2,6 +2,8 @@
 #include "OpenGLRenderer.h"
 #include "GL/glew.h"
 
+GraphicalInformation OpenGLRenderer::systemInformation;
+
 void GLClearError()  //Clears all errors.
 {
     while (glGetError() != GL_NO_ERROR);
@@ -17,12 +19,12 @@ bool GLLogCall(const char* function, const char* file, int line)
     return true;
 }
 
-/*OpenGLRenderer::OpenGLRenderer()
+OpenGLRenderer::OpenGLRenderer()
 {
     OpenGLRenderer::systemInformation.rendererInformation = (char*)glGetString(GL_RENDERER);
     OpenGLRenderer::systemInformation.vendorInformation = (char*)glGetString(GL_VENDOR);
     OpenGLRenderer::systemInformation.versionInformation = (char*)glGetString(GL_VERSION);
-}*/
+}
 
 void OpenGLRenderer::Clear() const
 {

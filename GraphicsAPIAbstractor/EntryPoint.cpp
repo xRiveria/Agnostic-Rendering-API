@@ -16,37 +16,6 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-//ImGui is a GUI library that we can use with any rendering API. It is API independant and is a way for us to draw UI on the screen.
-//It lets us draw buttons, text, color pickers etc. We can add framerates, graphic card information etc in its own window.
-//Its really useful for debugging purposes and is useful if we want to make an application quickly.
-//Its good for game engines to simulate an editor. 
-
-
-struct FluctuatingColors
-{
-    float r = 0.0f;
-    float increment = 0.05f;
-
-    void SetColor(Shader& shader)
-    {
-        shader.Bind();
-        shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
-    }
-
-    void TickColor()
-    {
-        if (r > 1.0f)
-        {
-            increment = -0.05f;
-        }
-        else if (r < 0.0f)
-        {
-            increment = 0.05f;
-        }
-        r += increment;
-    }
-};
-
 int main()
 {
     std::cout << "Start of Program!" << "\n";
@@ -82,10 +51,10 @@ int main()
     {
         float positions[] =
         {
-            100.0f, 100.0f, 0.0f, 0.0f,  //0
-            200.0f, 100.0f, 1.0f, 0.0f, //1
-            200.0f, 200.0f, 1.0f, 1.0f,  //2
-            100.0f, 200.0f, 0.0f, 1.0f //3
+            -50.0f, -50.0f, 0.0f, 0.0f,  //0
+             50.0f,-50.0f, 1.0f, 0.0f, //1
+             50.0f, 50.0f, 1.0f, 1.0f,  //2
+            -50.0f, 50.0f, 0.0f, 1.0f //3
         };
 
         //Below we have our projection matrix. Anything bigger than what we specified for the bounds will not be rendered! 
@@ -93,9 +62,8 @@ int main()
         //These positions below when multiplied with the above positions will be turned into that 1 to 1 normalized coordinate space.
         //At the end of the day, these vertex positions get multipled with our matrix and that is what converts them back to being -0.5 and 0.5 etc.
         
-        glm::mat4 projectionMatrix = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -3.0f, 1.0f); //Pixel based. Every unit is one pixel here.
-        glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-100, 0, 0));  //Moves our camera to the right, so everything else moves left on the screen.
-
+        glm::mat4 projectionMatrix = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f); //Pixel based. Every unit is one pixel here.
+        glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));  //Moves our camera to the right, so everything else moves left on the screen.
 
         //We can see that we have successfully converted our vertex positions into that -1 to 1 space.
         //That is what projection does in both 2D and 3D, orthographic or perspective. All you're doing is telling your computer how to convert from whatever space you're dealing with (what you give it) to that -1 to 1 space. 
@@ -123,9 +91,10 @@ int main()
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
 
-        Texture texture("Resources/Textures/PrismEngineLogo.png");
-        texture.Bind();
-        shader.SetUniform1i("u_Texture", 0); //0 because we bound our texture to slot 0 in Texture.cpp.
+        Texture textureA("Resources/Textures/PrismEngineLogo.png");
+        Texture textureB("Resources/Textures/AeternumGameLogo.png");
+       // texture.Bind();
+        //shader.SetUniform1i("u_Texture", 0); //0 because we bound our texture to slot 0 in Texture.cpp.
                                              //Texture Coordinates tell our geometry which part of the texture to sample from. Our Fragment/Pixel shader goes through and rasterizes the rectangle,  
                                              //The fragment shader is responsible for the color of each pixel. We need to somehow tell the fragment shader to sample from the texture pixels to decide which color the pixel on the geometry will be.
                                              //We are to specify for each vertex we have on our rectangle, what area of the texture it should be. The frag shader will turn interpolate between that so that if we're rendering a pixel halfway between 2indices, it will choose a coordinate that is halfway through as well.  
@@ -136,8 +105,6 @@ int main()
              
         OpenGLRenderer renderer;
 
-        FluctuatingColors fluctColor;
-
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -145,8 +112,8 @@ int main()
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init((char*)glGetString(GL_NUM_SHADING_LANGUAGE_VERSIONS));
 
-        glm::vec3 translation(200, 200, 0);
-
+        glm::vec3 translationA(200, 200, 0);
+        glm::vec3 translationB(400, 200, 0);
        /* bool show_demo_window = true;
         bool show_another_window = false;
         ImVec4 clear_color = ImVec4(0.45, 0.55f, 0.60f, 1.00f);*/
@@ -161,23 +128,36 @@ int main()
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
-            //MVP - Model View Projection Matrix. Remember that this is in reverse because OpenGL's memory layout in its shader and GPU is column major, and that is why glm does this for us due to OpenGL.
-            glm::mat4 mvp = projectionMatrix * viewMatrix * model;
-
-            fluctColor.SetColor(shader);
-            shader.SetUniformMat4f("u_MVP", mvp);
-            renderer.Draw(vertexArray, indexBuffer, shader);
-
-            fluctColor.TickColor();
-            
+            {
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
+                //MVP - Model View Projection Matrix. Remember that this is in reverse because OpenGL's memory layout in its shader and GPU is column major, and that is why glm does this for us due to OpenGL.
+                glm::mat4 mvp = projectionMatrix * viewMatrix * model;
+                shader.Bind();
+                textureA.Bind();
+                shader.SetUniformMat4f("u_MVP", mvp);
+                shader.SetUniform1i("u_Texture", 0);
+                renderer.Draw(vertexArray, indexBuffer, shader);
+            }
 
             {
-                ImGui::SliderFloat3("Translation", &translation.x, 0.0f, 960.0f);
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
+                glm::mat4 mvp = projectionMatrix * viewMatrix * model;
+                shader.Bind();
+                textureB.Bind();
+                shader.SetUniformMat4f("u_MVP", mvp);
+                shader.SetUniform1i("u_Texture", 0);
+                renderer.Draw(vertexArray, indexBuffer, shader);
+            }
+
+            {
+                ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 960.0f);
+               
+                ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, 960.0f);
+
                 ImGui::Begin("Graphical Information");
-                ImGui::Text((char*)glGetString(GL_RENDERER));
-                ImGui::Text((char*)glGetString(GL_VENDOR));
-                ImGui::Text((char*)glGetString(GL_VERSION));
+                ImGui::Text(renderer.RetrieveGraphicalInformation().rendererInformation);
+                ImGui::Text(renderer.RetrieveGraphicalInformation().vendorInformation);
+                ImGui::Text(renderer.RetrieveGraphicalInformation().versionInformation);
                 ImGui::End();
                 /*static float f = 0.0f;
                 static int counter = 0;

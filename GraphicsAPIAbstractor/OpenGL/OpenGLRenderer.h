@@ -22,12 +22,12 @@ bool GLLogCall(const char* function, const char* file, int line);
 class OpenGLRenderer
 {
 public:
-    //OpenGLRenderer();
-    //inline GraphicalInformation RetrieveGraphicalInformation() const { return systemInformation; }
+    OpenGLRenderer();
+    inline GraphicalInformation RetrieveGraphicalInformation() const { return systemInformation; }
     void Clear() const;
     void Draw(const VertexArray& vertexArray, const IndexBuffer& indexBuffer, const Shader& shader);
 private:
-    //static GraphicalInformation systemInformation;
+    static GraphicalInformation systemInformation;
 };
 
 
