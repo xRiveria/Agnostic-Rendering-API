@@ -15,6 +15,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include "Tests/TestClearColor.h"
 
 int main()
 {
@@ -104,6 +105,7 @@ int main()
         shader.Unbind();
              
         OpenGLRenderer renderer;
+        Test::TestClearColor test;
 
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -123,11 +125,14 @@ int main()
         {
             /* Render here */
             renderer.Clear();
+            test.OnUpdate(0.0f);
+            test.OnRender();
+
             //New Frame
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-
+            test.OnImGuiRender();
             {
                 glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
                 //MVP - Model View Projection Matrix. Remember that this is in reverse because OpenGL's memory layout in its shader and GPU is column major, and that is why glm does this for us due to OpenGL.
@@ -159,6 +164,7 @@ int main()
                 ImGui::Text(renderer.RetrieveGraphicalInformation().vendorInformation);
                 ImGui::Text(renderer.RetrieveGraphicalInformation().versionInformation);
                 ImGui::End();
+
                 /*static float f = 0.0f;
                 static int counter = 0;
 
