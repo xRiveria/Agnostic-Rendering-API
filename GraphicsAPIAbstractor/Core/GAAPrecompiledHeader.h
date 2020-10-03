@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <set>
 #include <functional>
+#include <memory>
 
 ///Our Library
 

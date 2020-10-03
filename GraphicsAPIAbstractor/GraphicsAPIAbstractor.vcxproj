@@ -190,6 +190,7 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Tests\Test.cpp" />
     <ClCompile Include="Tests\TestClearColor.cpp" />
+    <ClCompile Include="Tests\TestTexture2D.cpp" />
     <ClCompile Include="Vendor\glm\detail\glm.cpp" />
     <ClCompile Include="Vendor\imgui\imgui.cpp" />
     <ClCompile Include="Vendor\imgui\imgui_demo.cpp" />
@@ -210,6 +211,7 @@
     <ClInclude Include="OpenGL\VertexBufferLayout.h" />
     <ClInclude Include="Tests\Test.h" />
     <ClInclude Include="Tests\TestClearColor.h" />
+    <ClInclude Include="Tests\TestTexture2D.h" />
     <ClInclude Include="Vendor\glm\common.hpp" />
     <ClInclude Include="Vendor\glm\detail\compute_common.hpp" />
     <ClInclude Include="Vendor\glm\detail\compute_vector_relational.hpp" />
