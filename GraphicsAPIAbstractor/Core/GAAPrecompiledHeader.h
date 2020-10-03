@@ -8,6 +8,8 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
+#include <set>
+#include <functional>
 
 ///Our Library
 

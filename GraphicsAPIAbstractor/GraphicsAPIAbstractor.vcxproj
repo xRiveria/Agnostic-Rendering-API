@@ -188,6 +188,7 @@
     <ClCompile Include="OpenGL\VertexArray.cpp" />
     <ClCompile Include="OpenGL\VertexBuffer.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Tests\Test.cpp" />
     <ClCompile Include="Tests\TestClearColor.cpp" />
     <ClCompile Include="Vendor\glm\detail\glm.cpp" />
     <ClCompile Include="Vendor\imgui\imgui.cpp" />

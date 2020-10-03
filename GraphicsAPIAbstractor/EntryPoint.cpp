@@ -17,6 +17,7 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "Tests/TestClearColor.h"
 
+
 int main()
 {
     std::cout << "Start of Program!" << "\n";
@@ -91,7 +92,6 @@ int main()
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
-
         Texture textureA("Resources/Textures/PrismEngineLogo.png");
         Texture textureB("Resources/Textures/AeternumGameLogo.png");
        // texture.Bind();
@@ -105,7 +105,6 @@ int main()
         shader.Unbind();
              
         OpenGLRenderer renderer;
-        Test::TestClearColor test;
 
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -113,6 +112,13 @@ int main()
         ImGui::StyleColorsDark();
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init((char*)glGetString(GL_NUM_SHADING_LANGUAGE_VERSIONS));
+
+        //Try making these tests command line arguments! :)
+        //You can create test menus on the get go and they are more "user specific" = won't clutter github.
+        Test::Test* currentTest = nullptr;
+        Test::TestMenu* testMenu = new Test::TestMenu(currentTest);
+        currentTest = testMenu;
+        testMenu->RegisterTest<Test::TestClearColor>("Clear Color");
 
         glm::vec3 translationA(200, 200, 0);
         glm::vec3 translationB(400, 200, 0);
@@ -123,16 +129,29 @@ int main()
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             /* Render here */
             renderer.Clear();
-            test.OnUpdate(0.0f);
-            test.OnRender();
 
             //New Frame
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-            test.OnImGuiRender();
+
+            if (currentTest != nullptr)
+            {
+                currentTest->OnUpdate(0.0f);
+                currentTest->OnRender();
+                ImGui::Begin("Test");
+                if (currentTest != testMenu && ImGui::Button("<-"))
+                {
+                    delete currentTest;
+                    currentTest = testMenu;
+                }
+                currentTest->OnImGuiRender();
+                ImGui::End();
+            }
+
             {
                 glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
                 //MVP - Model View Projection Matrix. Remember that this is in reverse because OpenGL's memory layout in its shader and GPU is column major, and that is why glm does this for us due to OpenGL.
@@ -195,6 +214,11 @@ int main()
 
             /* Poll for and process events */
             glfwPollEvents();
+        }
+        delete currentTest;
+        if (currentTest != testMenu)
+        {
+            delete testMenu;
         }
     }
     ImGui_ImplOpenGL3_Shutdown();
