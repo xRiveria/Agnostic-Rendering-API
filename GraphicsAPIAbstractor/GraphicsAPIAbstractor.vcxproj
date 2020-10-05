@@ -181,6 +181,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">GAAPrecompiledHeader.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="EntryPoint.cpp" />
+    <ClCompile Include="LearnShader.cpp" />
     <ClCompile Include="OpenGL\IndexBuffer.cpp" />
     <ClCompile Include="OpenGL\OpenGLRenderer.cpp" />
     <ClCompile Include="OpenGL\Shader.cpp" />
@@ -202,6 +203,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\GAAPrecompiledHeader.h" />
+    <ClInclude Include="LearnShader.h" />
     <ClInclude Include="OpenGL\IndexBuffer.h" />
     <ClInclude Include="OpenGL\OpenGLRenderer.h" />
     <ClInclude Include="OpenGL\Shader.h" />
@@ -505,6 +507,7 @@
     <ClInclude Include="Vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="FragmentShader.shader" />
     <None Include="OpenGL\Shaders\Basic.shader" />
     <None Include="Vendor\glm\detail\func_common.inl" />
     <None Include="Vendor\glm\detail\func_common_simd.inl" />

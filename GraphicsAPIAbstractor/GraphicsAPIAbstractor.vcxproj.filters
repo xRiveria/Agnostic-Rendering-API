@@ -75,6 +75,9 @@
     <ClCompile Include="Tests\TestTexture2D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LearnShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\GAAPrecompiledHeader.h">
@@ -983,6 +986,9 @@
     <ClInclude Include="Tests\TestTexture2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LearnShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="OpenGL\Shaders\Basic.shader" />
@@ -1394,6 +1400,7 @@
     <None Include="Vendor\glm\gtx\wrap.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="FragmentShader.shader" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Textures\PrismEngineLogo.png">
