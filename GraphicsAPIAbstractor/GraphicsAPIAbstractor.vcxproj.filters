@@ -1406,5 +1406,14 @@
     <Image Include="Resources\Textures\PrismEngineLogo.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\Textures\Container.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Textures\AwesomeFace.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\Textures\AeternumGameLogo.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

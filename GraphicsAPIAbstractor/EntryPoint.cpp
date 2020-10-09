@@ -18,10 +18,12 @@
 #include "Tests/TestClearColor.h"
 #include "Tests/TestTexture2D.h"
 #include "LearnShader.h"
+#include "stb_image/stb_image.h"
 
 //Settings
 unsigned int m_ScreenWidth = 800;
 unsigned int m_ScreenHeight = 600;
+float visibleValue = 0.1f;
 
 //This is a callback function that is called whenever a window is resized.
 void FramebufferResizeCallback(GLFWwindow* window, int windowWidth, int windowHeight)
@@ -37,7 +39,7 @@ void FramebufferResizeCallback(GLFWwindow* window, int windowWidth, int windowHe
 //We can use GLFW's "glfwGetKey()" function that takes the window as input together with a key.
 //The function returns whether said key is currently being pressed. We're creating a "ProcessInput" function to keep all input code organized.
 //This gives us an easy way to check for specific key presses and react accordingly every frame. An iteration of a render loop is more commonly called a frame. 
-void ProcessInput(GLFWwindow* window)
+void ProcessInput(GLFWwindow* window, LearnShader shaderProgram)
 {
     //Here, we check whether the user has pressed the escape key (if not pressed, "glfwGetKey()" returns GLFW_RELEASE).
     //If the user did press the escape key, we close GLFW by setting its WindowShouldClose property to true using "glfwSetWindowShouldClose()". 
@@ -46,6 +48,20 @@ void ProcessInput(GLFWwindow* window)
     {
         glfwSetWindowShouldClose(window, true);
     }
+
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    {
+        visibleValue = visibleValue + 0.05f;
+        unsigned int uniformLocation = glGetUniformLocation(shaderProgram.GetShaderID(), "textureViewValue");
+        glUniform1f(uniformLocation, visibleValue);
+    }
+
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
+		visibleValue = visibleValue - 0.05f;
+		unsigned int uniformLocation = glGetUniformLocation(shaderProgram.GetShaderID(), "textureViewValue");
+		glUniform1f(uniformLocation, visibleValue);
+	}
 }
 
 int main()
@@ -103,14 +119,15 @@ int main()
     //Because OpenGL works in 3D space, we render a 2D triangle with each vertex having a Z coordinate of 0.0. This way, the depth of the triangle remains the same, making it look like its 2D. 
     float vertices[] =
     {
-        //0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top right
-// 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, // bottom right
--//0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left
--//0.5f,  0.5f, 0.0f   // top left 
+		// positions          // colors           // texture coordinates
+		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
         // positions         // colors
-        0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
+        //0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+        //-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+        // 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
 
     };
 
@@ -124,6 +141,8 @@ int main()
     unsigned int vertexArrayObject;
     glGenVertexArrays(1, &vertexArrayObject);
     glBindVertexArray(vertexArrayObject); //Every subsequent attribute pointer call will now link the buffer and said attribute configurations to this vertex array object.
+
+
 
     //With the vertex data defined, we would like to send it as input to the first process of the graphics pipeline: the vertex shader.
     //This is done by creating memory on the GPU where we store the vertex data, configure how OpenGL should interpret the memory and specify how to send data to the graphics card.
@@ -157,24 +176,71 @@ int main()
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+	//Index Buffer Creation
+	unsigned int indexBufferObject;
+	glGenBuffers(1, &indexBufferObject);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+
     //Links the vertex attributes from the buffers that we passed into the shaders.
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    //Inded Buffer Creation
-    unsigned int indexBufferObject;
-    glGenBuffers(1, &indexBufferObject);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
-  
+
+
+    unsigned int textureData1, textureData2;
+    glGenTextures(1, &textureData1);
+    glBindTexture(GL_TEXTURE_2D, textureData1);
+    //Sets the texture wrapping and filtering options on the currently bound texture object. 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //When objects are zoomed out aka scaled down (further away), we interpolate from the texel closest to the fragment. 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //When objects are zoomed in aka scaled up, we interpolate from a combination of nearest texels to the fragment.
+   
+ //Load and generate the texture.
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* data = stbi_load("Resources/Textures/Container.jpg", &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load textures! \n";
+    }
+    stbi_image_free(data);
+
+    glGenTextures(1, &textureData2);
+    glBindTexture(GL_TEXTURE_2D, textureData2);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* data2 = stbi_load("Resources/Textures/AwesomeFace.png", &width, &height, &nrChannels, 0);
+    if (data2)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data2);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    stbi_image_free(data2);
+    
 
     //unsigned int colorUniformLocation = glGetUniformLocation(shaderProgram, "ourColor");
     //glUseProgram(shaderProgram);
-
+    ourShader.UseShader(); //Always activate shaders before setting uniforms.
+    ourShader.SetUniformInteger("texture1", 0);
+    ourShader.SetUniformInteger("texture2", 1);
 
     //We don't want the application to draw a single image and than just quit and close the window.
     //We want to program to keep drawing images and handling user input until it has been explicitly told to stop.
@@ -186,7 +252,7 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
-        ProcessInput(window); //Process key input events.
+        ProcessInput(window, ourShader); //Process key input events.
 
         /// ===== Rendering =====
 
@@ -206,10 +272,16 @@ int main()
         //float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
         //glUniform4f(colorUniformLocation, 0.5f, greenValue, 0.4f, 0.4f);
         //Draws Triangle
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureData1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, textureData2);
+
         ourShader.UseShader();
-        glBindVertexArray(vertexArrayObject); //Binds the buffer and configurations for the object we want to draw (provided we have binded it to something else before calling this).
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindVertexArray(vertexArrayObject); //Binds the buffer and configurations for the object we want to draw (provided we have binded it to something else before calling this).
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        //glDrawArrays(GL_TRIANGLES, 0, 3);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -224,23 +296,6 @@ int main()
     glfwTerminate();
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /*

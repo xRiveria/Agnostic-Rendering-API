@@ -647,6 +647,9 @@
     <None Include="Vendor\glm\gtx\wrap.inl" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Resources\Textures\AeternumGameLogo.png" />
+    <Image Include="Resources\Textures\AwesomeFace.png" />
+    <Image Include="Resources\Textures\Container.jpg" />
     <Image Include="Resources\Textures\PrismEngineLogo.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
